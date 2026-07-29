@@ -254,18 +254,101 @@
 
     <script>
         const defaultProducts = [
-            { id: 1, name: "Arabica Gayo", category: "Local Arabica", price_per_kg: 280000, stock_gram: 800 },
-            { id: 2, name: "Arabica Ijen Raung", category: "Local Arabica", price_per_kg: 340000, stock_gram: 500 },
-            { id: 3, name: "Arabica Bali Kintamani", category: "Local Arabica", price_per_kg: 280000, stock_gram: 550 },
-            { id: 4, name: "Arabica Toraja", category: "Local Arabica", price_per_kg: 280000, stock_gram: 300 },
-            { id: 5, name: "Arabica Mandailing", category: "Local Arabica", price_per_kg: 280000, stock_gram: 800 },
-            { id: 6, name: "Arabica Enrekang", category: "Local Arabica", price_per_kg: 280000, stock_gram: 400 },
-            { id: 7, name: "Arabica Blue Batak", category: "Local Arabica", price_per_kg: 280000, stock_gram: 400 },
-            { id: 8, name: "Arabica Temanggung", category: "Local Arabica", price_per_kg: 340000, stock_gram: 500 },
-            { id: 9, name: "Arabica Manggarai", category: "Local Arabica", price_per_kg: 340000, stock_gram: 500 },
-            { id: 10, name: "Arabica Sumendo", category: "Local Arabica", price_per_kg: 340000, stock_gram: 500 },
-            { id: 11, name: "Arabica Mekar Wangi", category: "Local Arabica", price_per_kg: 340000, stock_gram: 500 },
-            { id: 12, name: "Robusta Malang", category: "Robusta", price_per_kg: 150000, stock_gram: 1250 }
+            // LOCAL ARABICA
+            { id: 1, name: "Arabica Bali Kintamani Dark", category: "Local Arabica", price_per_kg: 300000, stock_gram: 0 },
+            { id: 2, name: "Arabica Bali Kintamani", category: "Local Arabica", price_per_kg: 300000, stock_gram: 550 }, // Stok Opname
+            { id: 3, name: "Arabica Bali Spc.", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 4, name: "Arabica Blue Batak", category: "Local Arabica", price_per_kg: 300000, stock_gram: 400 }, // Stok Opname
+            { id: 5, name: "Arabica Carlos Full Wash", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 6, name: "Arabica Cikuray", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 7, name: "Arabica Ciwidey", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 8, name: "Arabica Enrekang", category: "Local Arabica", price_per_kg: 300000, stock_gram: 400 }, // Stok Opname
+            { id: 9, name: "Arabica Flores Dark", category: "Local Arabica", price_per_kg: 300000, stock_gram: 0 },
+            { id: 10, name: "Arabica Flores Full Wash", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 11, name: "Arabica Garut Nanas", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 12, name: "Arabica Garut Spe.", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 13, name: "Arabica Gayo Esp.", category: "Local Arabica", price_per_kg: 300000, stock_gram: 800 }, // Dimapping dari Arabica Gayo
+            { id: 14, name: "Arabica Gayo PR.", category: "Local Arabica", price_per_kg: 300000, stock_gram: 0 },
+            { id: 15, name: "Arabica Gayo Spe", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 16, name: "Arabica Ijen Raung", category: "Local Arabica", price_per_kg: 360000, stock_gram: 500 }, // Stok Opname
+            { id: 17, name: "Arabica Kerinci Full Wash", category: "Local Arabica", price_per_kg: 380000, stock_gram: 0 },
+            { id: 18, name: "Arabica Lintong", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 19, name: "Arabica Longberry", category: "Local Arabica", price_per_kg: 420000, stock_gram: 0 },
+            { id: 20, name: "Arabica Malabar", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 21, name: "Arabica Malino Spc.", category: "Local Arabica", price_per_kg: 400000, stock_gram: 0 },
+            { id: 22, name: "Arabica Mandailing", category: "Local Arabica", price_per_kg: 300000, stock_gram: 800 }, // Stok Opname
+            { id: 23, name: "Arabica Mandailing Spc.", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 24, name: "Arabica Manggarai", category: "Local Arabica", price_per_kg: 360000, stock_gram: 500 }, // Stok Opname
+            { id: 25, name: "Arabica Manglayang", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 26, name: "Arabica Mekar Wangi", category: "Local Arabica", price_per_kg: 360000, stock_gram: 500 }, // Stok Opname
+            { id: 27, name: "Arabica Papua Dark", category: "Local Arabica", price_per_kg: 400000, stock_gram: 0 },
+            { id: 28, name: "Arabica Papua Wamena", category: "Local Arabica", price_per_kg: 400000, stock_gram: 0 },
+            { id: 29, name: "Arabica Pieberry", category: "Local Arabica", price_per_kg: 420000, stock_gram: 0 },
+            { id: 30, name: "Arabica Puntang Full Wash", category: "Local Arabica", price_per_kg: 400000, stock_gram: 0 },
+            { id: 31, name: "Arabica Samosir", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 32, name: "Arabica Sidikalang Dark", category: "Local Arabica", price_per_kg: 300000, stock_gram: 0 },
+            { id: 33, name: "Arabica Sidikalang PR.", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 34, name: "Arabica Sigararutang", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 35, name: "Arabica Solok", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 36, name: "Arabica Sumendo", category: "Local Arabica", price_per_kg: 360000, stock_gram: 500 }, // Stok Opname
+            { id: 37, name: "Arabica T. Mamasa", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 38, name: "Arabica T. Sapan", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 39, name: "Arabica Takengon", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            { id: 40, name: "Arabica Temanggung", category: "Local Arabica", price_per_kg: 360000, stock_gram: 500 }, // Stok Opname
+            { id: 41, name: "Arabica Toraja Kalosi", category: "Local Arabica", price_per_kg: 300000, stock_gram: 300 }, // Dimapping dari Arabica Toraja
+            { id: 42, name: "Arabica Toraja Pulu-Pulu", category: "Local Arabica", price_per_kg: 360000, stock_gram: 0 },
+            
+            // BLEND
+            { id: 43, name: "Classic Home Blend", category: "Blend", price_per_kg: 300000, stock_gram: 0 },
+            { id: 44, name: "Espresso", category: "Blend", price_per_kg: 260000, stock_gram: 0 },
+            
+            // HONEY
+            { id: 45, name: "Honey Bali", category: "Honey", price_per_kg: 400000, stock_gram: 0 },
+            { id: 46, name: "Honey Flores", category: "Honey", price_per_kg: 400000, stock_gram: 0 },
+            { id: 47, name: "Honey Gayo", category: "Honey", price_per_kg: 400000, stock_gram: 0 },
+            { id: 48, name: "Honey Halu", category: "Honey", price_per_kg: 400000, stock_gram: 0 },
+            { id: 49, name: "Honey Red", category: "Honey", price_per_kg: 420000, stock_gram: 0 },
+            { id: 50, name: "Honey Sunda Gulali", category: "Honey", price_per_kg: 420000, stock_gram: 0 },
+            { id: 51, name: "Honey Tarlos", category: "Honey", price_per_kg: 400000, stock_gram: 0 },
+            
+            // NATURAL
+            { id: 52, name: "Natural Bali", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 53, name: "Natural Banana", category: "Natural", price_per_kg: 470000, stock_gram: 0 },
+            { id: 54, name: "Natural Flores", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 55, name: "Natural Garut", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 56, name: "Natural Gayo", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 57, name: "Natural Ijen", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 58, name: "Natural Kamojang", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 59, name: "Natural Patuha", category: "Natural", price_per_kg: 420000, stock_gram: 0 },
+            { id: 60, name: "Natural Red", category: "Natural", price_per_kg: 420000, stock_gram: 0 },
+            { id: 61, name: "Natural Tarlos", category: "Natural", price_per_kg: 400000, stock_gram: 0 },
+            { id: 62, name: "Natural Y. Anggur", category: "Natural", price_per_kg: 420000, stock_gram: 0 },
+            { id: 63, name: "Natural Y. Borbon", category: "Natural", price_per_kg: 420000, stock_gram: 0 },
+            { id: 64, name: "Natural Y. Datura", category: "Natural", price_per_kg: 420000, stock_gram: 0 },
+            
+            // WINE
+            { id: 65, name: "Arabica Garut Wine", category: "Wine", price_per_kg: 470000, stock_gram: 0 },
+            { id: 66, name: "Arabica Gayo Wine L/M/Dark", category: "Wine", price_per_kg: 470000, stock_gram: 0 },
+            { id: 67, name: "Arabica Puntang Wine", category: "Wine", price_per_kg: 470000, stock_gram: 0 },
+            
+            // IMPORT
+            { id: 68, name: "Arabica Brazil Honey", category: "Import", price_per_kg: 520000, stock_gram: 0 },
+            { id: 69, name: "Arabica Colombia", category: "Import", price_per_kg: 520000, stock_gram: 0 },
+            { id: 70, name: "Arabica Guatemala", category: "Import", price_per_kg: 520000, stock_gram: 0 },
+            
+            // SPECIALTY
+            { id: 71, name: "Arabica Bluemount.", category: "Specialty", price_per_kg: 470000, stock_gram: 0 },
+            { id: 72, name: "Arabica Exotis Anaerob Jagong Jeget", category: "Specialty", price_per_kg: 420000, stock_gram: 0 },
+            { id: 73, name: "Arabica Geisha", category: "Specialty", price_per_kg: 470000, stock_gram: 0 },
+            { id: 74, name: "Arabica Luwak", category: "Specialty", price_per_kg: 620000, stock_gram: 0 },
+            { id: 75, name: "Arabica Puntang Honey", category: "Specialty", price_per_kg: 920000, stock_gram: 0 },
+            
+            // EXCELSA & LIBERICA
+            { id: 76, name: "Excelsa Ijen", category: "Excelsa", price_per_kg: 340000, stock_gram: 0 },
+            { id: 77, name: "Liberica Jambi", category: "Liberica", price_per_kg: 340000, stock_gram: 0 },
+
+            // ROBUSTA (Dibiarkan dari sesi sebelumnya sebagai backup data)
+            { id: 78, name: "Robusta Malang", category: "Robusta", price_per_kg: 150000, stock_gram: 1250 }
         ];
 
         let products = JSON.parse(localStorage.getItem('gk_products')) || defaultProducts;
