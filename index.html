@@ -65,6 +65,8 @@
                             <option value="Wine">Wine</option>
                             <option value="Import">Import</option>
                             <option value="Specialty">Specialty</option>
+                            <option value="Excelsa">Excelsa</option>
+                            <option value="Liberica">Liberica</option>
                         </select>
                     </div>
                     <div id="pos-product-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1"></div>
@@ -249,15 +251,34 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Database Cloud (Environment injected variables)
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // Konfigurasi dummy untuk mencegah error sebelum di-hosting
-            apiKey: "dummy-key", projectId: "dummy-project"
-        };
+        // =========================================================================
+        // 🔴 LANGKAH PENTING: MASUKKAN KONFIGURASI FIREBASE ANDA DI BAWAH INI 🔴
+        // Ganti nilai-nilai di bawah ini dengan konfigurasi dari Firebase Console Anda
+        // =========================================================================
+        let firebaseConfig;
+        
+        if (typeof __firebase_config !== 'undefined') {
+            // Ini akan membuat aplikasi tetap bisa di-preview di web editor/canvas saat ini
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            // Ini akan digunakan ketika Anda upload ke GitHub Pages
+            firebaseConfig = {
+                apiKey: "GANTI_DENGAN_API_KEY_ANDA",
+                authDomain: "GANTI_DENGAN_PROJECT_ID.firebaseapp.com",
+                projectId: "GANTI_DENGAN_PROJECT_ID",
+                storageBucket: "GANTI_DENGAN_PROJECT_ID.appspot.com",
+                messagingSenderId: "GANTI_DENGAN_SENDER_ID",
+                appId: "GANTI_DENGAN_APP_ID"
+            };
+        }
+        // =========================================================================
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gentan-kopi-pos-v1';
+        
+        // Kita buat App ID statis agar folder di database rapi
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gentan-kopi-pos';
 
         let currentUser = null;
         let products = [];
@@ -266,9 +287,13 @@
         let cart = [];
         let chartInstance = null;
 
-        // Inisialisasi Auth Terlebih Dahulu (RULE 3)
+        // Inisialisasi Auth
         async function initAuth() {
             try {
+                if (firebaseConfig.apiKey === "GANTI_DENGAN_API_KEY_ANDA") {
+                    throw new Error("DummyKey");
+                }
+
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -276,7 +301,12 @@
                 }
             } catch (err) {
                 console.error("Gagal Authentikasi: ", err);
-                document.getElementById('sync-status').innerText = "Offline Mode";
+                document.getElementById('sync-status').innerText = "Offline Mode (Periksa Kunci Firebase)";
+                document.getElementById('sync-status').classList.replace('text-amber-200', 'text-red-300');
+                
+                if (err.message === "DummyKey") {
+                    alert("⚠️ PENTING: Anda masih menggunakan teks bawaan ('GANTI_DENGAN_API_KEY_ANDA'). Anda harus mengedit kode ini dan memasukkan konfigurasi asli dari Firebase Console milik Anda agar aplikasi dapat berjalan secara online di GitHub Pages.");
+                }
             }
         }
 
@@ -284,13 +314,13 @@
             currentUser = user;
             if (user) {
                 document.getElementById('sync-status').innerText = "🟢 Online Tersinkronisasi";
+                document.getElementById('sync-status').classList.replace('text-red-300', 'text-green-300');
                 setupRealtimeListeners();
             }
         });
 
         initAuth();
 
-        // Mengambil data secara realtime dari Cloud (RULE 1 & 2)
         function setupRealtimeListeners() {
             if (!currentUser) return;
 
@@ -298,10 +328,9 @@
             const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
             onSnapshot(productsRef, (snapshot) => {
                 if (snapshot.empty) {
-                    seedDefaultProducts();
+                    seedDefaultProducts(); // Jika database kosong, masukkan menu default
                 } else {
                     products = snapshot.docs.map(doc => doc.data());
-                    // Urutkan berdasarkan kategori dan nama agar rapi
                     products.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
                     window.renderPOSProducts();
                     window.renderIncoming();
@@ -321,14 +350,13 @@
             const salesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sales');
             onSnapshot(salesRef, (snapshot) => {
                 sales = snapshot.docs.map(doc => doc.data());
-                // Sort by date descending
                 sales.sort((a, b) => new Date(b.date) - new Date(a.date));
                 window.renderHistory();
                 window.renderReports();
             }, (error) => console.error("Error penjualan:", error));
         }
 
-        // ================= SEED DATA (78 ITEM) =================
+        // ================= SEED DATA (Akan otomatis berjalan 1x saat database baru dibuat) =================
         async function seedDefaultProducts() {
             const defaultProducts = [
                 { id: 1, name: "Arabica Bali Kintamani Dark", category: "Local Arabica", price_per_kg: 300000, stock_gram: 0 },
@@ -545,7 +573,6 @@
                 
                 let totalAmount = 0;
                 
-                // 1. Update Stok di Cloud Database untuk setiap item
                 for (const item of cart) {
                     const prod = products.find(p => p.id === item.productId);
                     if (prod) {
@@ -556,7 +583,6 @@
                     totalAmount += (item.qtyGram / 1000) * item.price_per_kg;
                 }
 
-                // 2. Simpan Catatan Penjualan ke Cloud Database
                 const saleId = Date.now().toString();
                 const newSale = {
                     id: saleId,
@@ -570,10 +596,8 @@
                 const saleRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales', saleId);
                 await setDoc(saleRef, newSale);
 
-                // 3. Print Invoice
                 window.printInvoice(newSale);
 
-                // Reset Keranjang
                 cart = [];
                 window.renderCart();
 
@@ -730,7 +754,6 @@
             const ctx = document.getElementById('salesChart').getContext('2d');
             const salesByDate = {};
             
-            // Kita balik datanya untuk grafik (dari terlama ke terbaru) karena array sales diurutkan descending
             [...sales].reverse().forEach(s => {
                 const dateKey = new Date(s.date).toLocaleDateString('id-ID');
                 salesByDate[dateKey] = (salesByDate[dateKey] || 0) + s.totalAmount;
