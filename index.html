@@ -166,7 +166,7 @@
                                 <th class="p-2 border">Tanggal</th>
                                 <th class="p-2 border">Pelanggan</th>
                                 <th class="p-2 border">Total</th>
-                                <th class="p-2 border">Cetak</th>
+                                <th class="p-2 border">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="history-table-body"></tbody>
@@ -249,7 +249,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
         // 🔴 LANGKAH PENTING: MASUKKAN KONFIGURASI FIREBASE ANDA DI BAWAH INI 🔴
@@ -731,11 +731,45 @@
                     <td class="p-2 border">${new Date(s.date).toLocaleString('id-ID')}</td>
                     <td class="p-2 border">${s.customerName}</td>
                     <td class="p-2 border font-bold">${formatIDR(s.totalAmount)}</td>
-                    <td class="p-2 border">
-                        <button onclick='window.printInvoice(${JSON.stringify(s)})' class="bg-gray-700 text-white text-xs px-2 py-1 rounded">Cetak</button>
+                    <td class="p-2 border flex gap-1">
+                        <button onclick='window.printInvoice(${JSON.stringify(s)})' class="bg-gray-700 hover:bg-gray-800 text-white text-xs px-2 py-1 rounded">Cetak</button>
+                        <button onclick='window.deleteSale("${s.id}")' class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded">Hapus</button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        window.deleteSale = async function(saleId) {
+            if (!currentUser) return alert('Koneksi cloud terputus.');
+            
+            // Konfirmasi penghapusan agar tidak terhapus tak sengaja
+            if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini? Stok kopi yang terjual akan otomatis dikembalikan ke sistem.')) {
+                return;
+            }
+
+            try {
+                const sale = sales.find(s => s.id === saleId);
+                if (!sale) return;
+
+                // 1. Kembalikan stok item yang dibatalkan terlebih dahulu
+                for (const item of sale.items) {
+                    const prod = products.find(p => p.id === item.productId);
+                    if (prod) {
+                        const newStock = prod.stock_gram + item.qtyGram;
+                        const prodRef = doc(db, 'artifacts', appId, 'public', 'data', 'products', prod.id.toString());
+                        await updateDoc(prodRef, { stock_gram: newStock });
+                    }
+                }
+
+                // 2. Hapus dokumen penjualan dari Cloud Firebase
+                const saleRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales', saleId);
+                await deleteDoc(saleRef);
+
+                alert('Data transaksi berhasil dihapus dari cloud dan stok telah dikembalikan.');
+            } catch (err) {
+                console.error("Error menghapus transaksi: ", err);
+                alert('Gagal menghapus transaksi. Periksa koneksi internet Anda.');
+            }
         }
 
         // ================= REPORTS =================
