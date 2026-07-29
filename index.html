@@ -100,6 +100,10 @@
                 <h2 class="text-lg font-bold mb-4 text-gray-800">Pencatatan Stok Masuk (Restock)</h2>
                 <form id="incoming-form" onsubmit="window.handleIncoming(event)" class="max-w-lg space-y-4">
                     <div>
+                        <label class="block text-sm font-medium mb-1">Cari Nama Kopi</label>
+                        <input type="text" id="incoming-search" onkeyup="window.renderIncomingOptions()" placeholder="Ketik nama kopi untuk memfilter..." class="border p-2 rounded w-full text-sm mb-2">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium mb-1">Pilih Produk</label>
                         <select id="incoming-product" required class="border p-2 rounded w-full text-sm"></select>
                     </div>
@@ -252,16 +256,13 @@
         import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🔴 LANGKAH PENTING: MASUKKAN KONFIGURASI FIREBASE ANDA DI BAWAH INI 🔴
-        // Ganti nilai-nilai di bawah ini dengan konfigurasi dari Firebase Console Anda
+        // Konfigurasi Firebase Asli Gentan Kopi
         // =========================================================================
         let firebaseConfig;
         
         if (typeof __firebase_config !== 'undefined') {
-            // Ini akan membuat aplikasi tetap bisa di-preview di web editor/canvas saat ini
             firebaseConfig = JSON.parse(__firebase_config);
         } else {
-            // Ini akan digunakan ketika Anda upload ke GitHub Pages
             firebaseConfig = {
                 apiKey: "AIzaSyDvuf2uscl_ZoUo6MxSwDOaqb_HwE1rjx0",
                 authDomain: "gentan-kopi-pos.firebaseapp.com",
@@ -278,7 +279,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Kita buat App ID statis agar folder di database rapi
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gentan-kopi-pos';
 
         let currentUser = null;
@@ -288,13 +288,8 @@
         let cart = [];
         let chartInstance = null;
 
-        // Inisialisasi Auth
         async function initAuth() {
             try {
-                if (firebaseConfig.apiKey === "GANTI_DENGAN_API_KEY_ANDA") {
-                    throw new Error("DummyKey");
-                }
-
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
@@ -304,10 +299,6 @@
                 console.error("Gagal Authentikasi: ", err);
                 document.getElementById('sync-status').innerText = "Offline Mode (Periksa Kunci Firebase)";
                 document.getElementById('sync-status').classList.replace('text-amber-200', 'text-red-300');
-                
-                if (err.message === "DummyKey") {
-                    alert("⚠️ PENTING: Anda masih menggunakan teks bawaan ('GANTI_DENGAN_API_KEY_ANDA'). Anda harus mengedit kode ini dan memasukkan konfigurasi asli dari Firebase Console milik Anda agar aplikasi dapat berjalan secara online di GitHub Pages.");
-                }
             }
         }
 
@@ -325,21 +316,19 @@
         function setupRealtimeListeners() {
             if (!currentUser) return;
 
-            // Listener Produk
             const productsRef = collection(db, 'artifacts', appId, 'public', 'data', 'products');
             onSnapshot(productsRef, (snapshot) => {
                 if (snapshot.empty) {
-                    seedDefaultProducts(); // Jika database kosong, masukkan menu default
+                    seedDefaultProducts();
                 } else {
                     products = snapshot.docs.map(doc => doc.data());
                     products.sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
                     window.renderPOSProducts();
-                    window.renderIncoming();
+                    window.renderIncomingOptions();
                     window.renderOpnam();
                 }
             }, (error) => console.error("Error produk:", error));
 
-            // Listener Pelanggan
             const customersRef = collection(db, 'artifacts', appId, 'public', 'data', 'customers');
             onSnapshot(customersRef, (snapshot) => {
                 customers = snapshot.docs.map(doc => doc.data());
@@ -347,7 +336,6 @@
                 window.renderCustomers();
             }, (error) => console.error("Error pelanggan:", error));
 
-            // Listener Penjualan
             const salesRef = collection(db, 'artifacts', appId, 'public', 'data', 'sales');
             onSnapshot(salesRef, (snapshot) => {
                 sales = snapshot.docs.map(doc => doc.data());
@@ -357,7 +345,6 @@
             }, (error) => console.error("Error penjualan:", error));
         }
 
-        // ================= SEED DATA (Akan otomatis berjalan 1x saat database baru dibuat) =================
         async function seedDefaultProducts() {
             const defaultProducts = [
                 { id: 1, name: "Arabica Bali Kintamani Dark", category: "Local Arabica", price_per_kg: 300000, stock_gram: 0 },
@@ -446,7 +433,6 @@
             }
         }
 
-        // ================= HELPER & UI =================
         function formatIDR(num) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
         }
@@ -463,7 +449,7 @@
             activeBtn.classList.add('bg-amber-50', 'text-amber-900');
 
             if(tabName === 'pos') { window.renderPOSProducts(); window.renderCustomerSelect(); }
-            if(tabName === 'incoming') window.renderIncoming();
+            if(tabName === 'incoming') window.renderIncomingOptions();
             if(tabName === 'opnam') window.renderOpnam();
             if(tabName === 'customers') window.renderCustomers();
             if(tabName === 'history') window.renderHistory();
@@ -640,16 +626,26 @@
             }, 300);
         }
 
-        // ================= STOK MASUK (INCOMING) =================
-        window.renderIncoming = function() {
+        // ================= STOK MASUK (INCOMING) DENGAN PENCARIAN =================
+        window.renderIncomingOptions = function() {
+            const searchVal = (document.getElementById('incoming-search').value || "").toLowerCase();
             const select = document.getElementById('incoming-product');
-            select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (Stok: ${p.stock_gram} gr)</option>`).join('');
+            
+            const filtered = products.filter(p => p.name.toLowerCase().includes(searchVal));
+            
+            if (filtered.length === 0) {
+                select.innerHTML = '<option value="">-- Kopi tidak ditemukan --</option>';
+                return;
+            }
+
+            select.innerHTML = filtered.map(p => `<option value="${p.id}">${p.name} (Stok: ${p.stock_gram} gr)</option>`).join('');
         }
 
         window.handleIncoming = async function(e) {
             e.preventDefault();
             if (!currentUser) return;
             const prodId = document.getElementById('incoming-product').value;
+            if (!prodId) return alert('Silakan pilih produk terlebih dahulu.');
             const qty = parseInt(document.getElementById('incoming-qty').value);
 
             const prod = products.find(p => p.id.toString() === prodId);
@@ -660,6 +656,7 @@
                 
                 alert(`Stok ${prod.name} tersinkronisasi ke Cloud! (+${qty} gr)`);
                 document.getElementById('incoming-form').reset();
+                window.renderIncomingOptions();
             }
         }
 
@@ -742,7 +739,6 @@
         window.deleteSale = async function(saleId) {
             if (!currentUser) return alert('Koneksi cloud terputus.');
             
-            // Konfirmasi penghapusan agar tidak terhapus tak sengaja
             if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini? Stok kopi yang terjual akan otomatis dikembalikan ke sistem.')) {
                 return;
             }
@@ -751,7 +747,6 @@
                 const sale = sales.find(s => s.id === saleId);
                 if (!sale) return;
 
-                // 1. Kembalikan stok item yang dibatalkan terlebih dahulu
                 for (const item of sale.items) {
                     const prod = products.find(p => p.id === item.productId);
                     if (prod) {
@@ -761,7 +756,6 @@
                     }
                 }
 
-                // 2. Hapus dokumen penjualan dari Cloud Firebase
                 const saleRef = doc(db, 'artifacts', appId, 'public', 'data', 'sales', saleId);
                 await deleteDoc(saleRef);
 
