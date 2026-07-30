@@ -16,6 +16,9 @@
             #printable-invoice table { width: 100%; border-collapse: collapse; }
         }
     </style>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B4513">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
@@ -807,5 +810,20 @@
             });
         }
     </script>
+
+    <script>
+  // Mendaftarkan Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(registration => {
+          console.log('ServiceWorker sukses didaftarkan dengan scope: ', registration.scope);
+        }, err => {
+          console.log('ServiceWorker gagal didaftarkan: ', err);
+        });
+    });
+  }
+    </script>
+    
 </body>
 </html>
